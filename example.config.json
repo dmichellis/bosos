@@ -1,0 +1,19 @@
+{
+    "seed_list": [
+        "localhost"
+    ],
+    "keyspace": "files",
+    "prefer_dc": "LHR4",
+    "conns_per_node": 3,
+    "retries": 3,
+    "listen": "0.0.0.0:8091",
+    "scrub_grace_time": 10,
+    "write_consistency": [ "all", "LocalQuorum", "One", "any" ],
+    "read_consistency": [ "One", "one", "quorum" ],
+    "populate_paths": true,
+    "concurrent_fetches": 5,
+    "concurrent_pushes": 5,
+    "concurrent_cassandra_requests_per_put_request": 20,
+    "concurrent_cassandra_requests_per_get_request": 20,
+    "pid_file": "/var/run/bosos.pid"
+}

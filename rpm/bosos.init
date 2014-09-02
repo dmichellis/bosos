@@ -1,0 +1,205 @@
+#!/bin/bash
+### BEGIN INIT INFO
+# Provides:          bosos
+# Required-Start:    $remote_fs $syslog
+# Required-Stop:     $remote_fs $syslog
+# Default-Start:
+# Default-Stop:      0 1 6
+# Short-Description: BOoking Simple Object Storage
+# Description:       A simple HTTP GET/PUT object storage for Cassandra
+### END INIT INFO
+
+PATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/local/bin
+BOSOS_USER="nobody"
+PID_FILE="/var/run/bosos.pid"
+BINARY=/usr/lib/bosos/bososd
+CONFIG_FILE=/etc/bosos/config.json
+# This should *NEVER* be rotated
+CONSOLE_LOG=/var/log/bosos/console.log
+DISABLE_LB_FILE=/etc/bosos/disable_lb
+# DISABLE_LB_WAIT=30 # will wait for X seconds after disable_lb before issuing the shutdown command
+STOP_GRACE=90
+
+. /etc/init.d/functions
+test -r /etc/sysconfig/bosos && . /etc/sysconfig/bosos
+. rpm/bosos.sysconfig
+
+APP="$BINARY -config '$CONFIG_FILE' -pid '$PID_FILE' "
+LOGDIR="`dirname "$CONSOLE_LOG"`"
+FORKED_PID="$PID_FILE.tmp"
+
+start(){
+    #check_config || exit 1
+    echo -n "Starting BoSOS service: "
+    if check_process ; then
+        echo -n "already runnig!"
+        failure
+        exit 1
+    fi
+    if [ $EUID -ne 0 ] ;then
+        echo -n "need root"
+        failure ; echo
+        exit 1
+    fi
+    test -e "$LOGDIR" || mkdir -p "$LOGDIR"
+    touch "$CONSOLE_LOG"
+    chown "$BOSOS_USER:" "$PID_FILE" "$FORKED_PID" "$LOGDIR" "$CONSOLE_LOG" >/dev/null 2>&1
+    daemon --user  $BOSOS_USER "$APP >'$CONSOLE_LOG' 2>&1 </dev/null & echo \$! > '$FORKED_PID'" >/dev/null 2>&1 </dev/null
+    CONT=0
+    while [ $CONT -lt 50 ] ; do
+        if check_process; then
+            success
+            rm -f "$FORKED_PID"
+            exit 0
+        fi
+        sleep 0.1
+        CONT=`expr $CONT + 1`
+    done
+    failure
+    # clean up the stale pid
+    kill -9 `cat "$FORKED_PID"` >/dev/null 2>&1
+}
+
+stop(){
+    echo -n "Stopping BoSOS service: "
+    if [ $EUID -ne 0 ] ;then
+        echo -n "need root"
+        failure ; echo
+        exit 1
+    fi
+    if check_process ; then
+        kill -TERM $pid
+        cont=0
+        SPIN='-\|/'
+        echo -n " "
+        while check_process; do
+            echo -ne "\b"`echo $SPIN | cut -c$[ $[ $cont % 4 ] + 1 ]`
+            if [ $cont -gt $STOP_GRACE ]; then
+                echo -ne "\bdidn't stop for ${STOP_GRACE}s"
+                failure ; echo
+                exit 1
+            fi
+            let cont++
+            sleep 1
+        done
+        success ; echo
+    else
+        echo -n "already stopped"
+        success
+        echo
+        exit 0
+    fi
+}
+
+disable_lb(){
+    test -z "$DISABLE_LB_FILE" && return
+    echo -n "Disabling the loadbalancer checks for BoSOS: "
+    touch "$DISABLE_LB_FILE" && success || failure
+    echo
+}
+
+enable_lb(){
+    test -z "$DISABLE_LB_FILE" && return
+    echo -n "Enabling the loadbalancer checks for BoSOS: "
+    rm -f "$DISABLE_LB_FILE"
+    success
+    echo
+}
+
+status_lb(){
+    if [ -z "$DISABLE_LB_FILE" ]; then
+        echo "BoSOS loadbalancer check enabled"
+        exit 0
+    elif [ -e "$DISABLE_LB_FILE" ]; then
+        echo "BoSOS loadbalancer check DISABLED ($DISABLE_LB_FILE)"
+        exit 1
+    fi
+    echo "BoSOS loadbalancer check enabled"
+    exit 0
+}
+
+check_config(){
+    echo -n "Validating configuration for BoSOS..."
+    if daemon --user  $BOSOS_USER "$APP -test"; then
+        success
+        echo
+        return
+    else
+        failure
+        exit 1
+    fi
+}
+check_process(){
+    pid=`cat $PID_FILE 2>/dev/null`
+    test -z "$pid" && return 1
+    ps -p "$pid" -o ucmd h | grep -qx "`basename "$BINARY"`"
+}
+
+get_pid(){
+    check_process || pid=""
+}
+
+restart(){
+    get_pid
+    if check_process ; then
+        OLDPID=$pid
+        echo -n "Seamlessly restarting the BoSOS daemon..."
+        kill -USR2 $pid && success || exit 1
+        CONT=0
+        while [ $CONT -lt 50 -a check_process ] ; do
+            get_pid
+            if [ -n "$pid" -a "$pid" != "$OLDPID" ] ; then
+                success
+                exit 0
+            fi
+            sleep 0.1
+            CONT=`expr $CONT + 1`
+        done
+        failure
+        exit 0
+    fi
+    start
+}
+
+condrstart(){
+    check_process && restart
+}
+
+reload(){
+    if get_pid ; then
+        echo -n "Sending SIGHUP to running BoSOS daemon..."
+        kill -HUP $pid && success || exit 1
+        exit 0
+    fi
+}
+
+case "$1" in
+    start|stop|restart|reload|disable_lb|enable_lb|status_lb|check_config|condrestart)
+#    set -x
+        $1
+        ;;
+    saferestart)
+        check_config || exit 1
+        restart
+        ;;
+    configtest)
+        check_config
+        ;;
+    status)
+        # status -p "$PID_FILE" bosos <-- this does not validate the binary running under pid
+        check_process && echo "BoSOS daemon (pid $pid) running..." && exit 0
+        echo "BoSOS daemon not running!"
+        exit 1
+        ;;
+    *)
+        cat << EOF
+Usage: $0 [ start, stop, status, restart, saferestart, condrestart, reload, configtest, enable_lb, disable_lb, status_lb ]
+
+  saferestart       -> configtest && restart
+  condrestat        -> only if already running
+  disable/enable_lb -> handles the LoadBalancer hint file
+  status_lb         -> status on the LoadBalancer hint file
+EOF
+        exit 1
+        ;;
+esac

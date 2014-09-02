@@ -1,0 +1,40 @@
+{
+	"ImportPath": "github.com/dmichellis/bosos",
+	"GoVersion": "go1.2.2",
+	"Deps": [
+		{
+			"ImportPath": "code.google.com/p/snappy-go/snappy",
+			"Comment": "null-15",
+			"Rev": "12e4b4183793ac4b061921e7980845e750679fd0"
+		},
+		{
+			"ImportPath": "github.com/dmichellis/cronologo",
+			"Rev": "ed071d4972e4cdbadeba877043b53db0543919e9"
+		},
+		{
+			"ImportPath": "github.com/dmichellis/gocassos",
+			"Rev": "10379205981ff4433f6f0257e82563377343407e"
+		},
+		{
+			"ImportPath": "github.com/dustin/go-humanize",
+			"Rev": "cb7b800be3f0238405be0e57d481740cfc4fb285"
+		},
+		{
+			"ImportPath": "github.com/gocql/gocql",
+			"Comment": "go1.1-130-g7bd964e",
+			"Rev": "7bd964ec83ae675586ba314806c02341c015c45b"
+		},
+		{
+			"ImportPath": "github.com/golang/groupcache/lru",
+			"Rev": "8b25adc0f62632c810997cb38c21111a3f256bf4"
+		},
+		{
+			"ImportPath": "github.com/rcrowley/goagain",
+			"Rev": "f2f192b5d1a96e21dd4026ce67cda85e49659a48"
+		},
+		{
+			"ImportPath": "speter.net/go/exp/math/dec/inf",
+			"Rev": "42ca6cd68aa922bc3f32f1e056e61b65945d9ad7"
+		}
+	]
+}
