@@ -13,7 +13,7 @@
 		},
 		{
 			"ImportPath": "github.com/dmichellis/gocassos",
-			"Rev": "10379205981ff4433f6f0257e82563377343407e"
+			"Rev": "8fd829dbb0915c931bfc17d62633c834eb959fb0"
 		},
 		{
 			"ImportPath": "github.com/dustin/go-humanize",
