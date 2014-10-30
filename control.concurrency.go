@@ -4,6 +4,9 @@ import (
 	. "github.com/dmichellis/gocassos/logging"
 )
 
+// Concurrency control for requests
+//
+// ClownCar, because you can only fit so many bozos in a Clown Car :)
 type ClownCar struct {
 	seats chan struct{}
 	Tag   string
