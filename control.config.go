@@ -57,6 +57,8 @@ type JsonConfig struct {
 	Concurrent_requests       int
 
 	Transfer_mode string
+
+	Inline_payload_max int
 }
 
 type ParsedConfig struct {
@@ -113,6 +115,8 @@ var config_defaults = ParsedConfig{
 
 		Transfer_mode: "stream",
 		Log_level:     FYI.Level(),
+
+		Inline_payload_max: 0,
 	},
 	fetchers: ClownCar{},
 	pushers:  ClownCar{},
@@ -151,6 +155,7 @@ func ParseConfig() (*ParsedConfig, error) {
 	}
 	file.Close()
 
+	new_cfg.backend.InlinePayloadMax = new_cfg.Inline_payload_max
 	new_cfg.backend.ScrubGraceTime = new_cfg.Scrub_grace_time
 	new_cfg.backend.PopulatePaths = new_cfg.Populate_paths
 	new_cfg.backend.AllowUpdates = new_cfg.Allow_updates
