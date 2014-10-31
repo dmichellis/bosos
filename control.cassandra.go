@@ -19,7 +19,7 @@ func (c *ParsedConfig) CassandraConnect() error {
 	cluster.Keyspace = c.Keyspace
 	cluster.Consistency = gocql.One
 	cluster.NumConns = c.Conns_per_node
-	cluster.RetryPolicy.NumRetries = c.Retries
+	cluster.RetryPolicy = &gocql.SimpleRetryPolicy{NumRetries: c.Retries}
 	cluster.Timeout = time.Duration(c.Cassandra_timeout) * time.Second
 	cluster.Discovery = gocql.DiscoveryConfig{
 		DcFilter: c.Preferdc,
