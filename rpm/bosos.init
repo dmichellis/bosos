@@ -22,7 +22,7 @@ STOP_GRACE=90
 
 . /etc/init.d/functions
 test -r /etc/sysconfig/bosos && . /etc/sysconfig/bosos
-. rpm/bosos.sysconfig
+#. rpm/bosos.sysconfig
 
 APP="$BINARY -config '$CONFIG_FILE' -pid '$PID_FILE' "
 LOGDIR="`dirname "$CONSOLE_LOG"`"
