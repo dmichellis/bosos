@@ -37,7 +37,13 @@ func (w *httpStatusRecorder) WriteHeader(code int) {
 }
 
 func AccessLog(w *httpStatusRecorder, r *http.Request) {
-	size, _ := strconv.Atoi(w.Header().Get("Content-Length"))
+	var size int
+	switch r.Method {
+	case "PUT":
+		size = int(r.ContentLength)
+	default:
+		size, _ = strconv.Atoi(w.Header().Get("Content-Length"))
+	}
 	access_log.Printf("%s - - [%s] \"%s %s %s\" %d %d \"-\" \"%s\" \"-\"\n", strings.Split(r.RemoteAddr, ":")[0], time.Now().UTC().Format("_2/Jul/2006 15:04:05 -0700"), r.Method, r.URL.Path, r.Proto, w.http_status, size, r.Header.Get("User-Agent"))
 }
 
