@@ -41,6 +41,7 @@ type JsonConfig struct {
 	Scrub_grace_time int
 	Populate_paths   bool
 	Allow_updates    bool
+	Mime_extension   bool
 
 	Expiration_round_up string
 
@@ -99,6 +100,7 @@ var config_defaults = ParsedConfig{
 		Scrub_grace_time: 10,
 		Populate_paths:   true,
 		Allow_updates:    true,
+		Mime_extension:   false,
 
 		Expiration_round_up: "0s",
 

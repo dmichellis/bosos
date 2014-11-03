@@ -4,8 +4,10 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"mime"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -66,6 +68,11 @@ func PutObjMetadataOnHeaders(w http.ResponseWriter, obj *gocassos.Object) {
 		// just informational fields and free-form on the storage backend, so
 		// be extra-careful presenting them.
 		w.Header().Add(fmt.Sprintf("X-Bosos-%s", k), v)
+	}
+	if cfg.Mime_extension {
+		w.Header().Add("Content-type", mime.TypeByExtension(filepath.Ext(obj.Objectname)))
+	} else {
+		w.Header().Set("Content-Type", "application/octet-stream")
 	}
 }
 func Get(w http.ResponseWriter, r *http.Request) error {
@@ -177,7 +184,6 @@ func Head(w http.ResponseWriter, r *http.Request) error {
 	}()
 
 	PutObjMetadataOnHeaders(w, obj)
-	w.Header().Set("Content-Type", "application/octet-stream")
 	w.Header().Add("ETag", fmt.Sprintf("%s", obj.Nodetag))
 	w.Header().Add("Last-Modified", time.Unix(obj.Updated, 0).Format(time.RFC1123))
 	w.Header().Add("Content-Length", fmt.Sprintf("%d", obj.ObjectSize))

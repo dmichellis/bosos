@@ -50,6 +50,9 @@ one time
 * **transfer_mode** - default transfer mode (for GETs) - you can use "stream"
 and "batch"; stream will order and stream chunks as they come, whereas batch
 will fetch the whole file first, THEN send it to the client.
+* **inline_payload** - maximum size (in bytes) to save directly on the metadata
+table (objects.inline_payload). 0 to disable
+* **mime_extension** - enables MIME type lookup by extension
 
 Build
 -----
