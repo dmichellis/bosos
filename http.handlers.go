@@ -119,7 +119,7 @@ func Put(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	if opts.DoNotUpdate {
-		if obj, _ := cfg.backend.Lookup("client_requested_update_protection", r.URL.Path); obj != nil {
+		if cfg.backend.Exists(r.URL.Path) {
 			http.Error(w, "Object already exists", http.StatusConflict)
 			return errors.New("Object already exists")
 		}
