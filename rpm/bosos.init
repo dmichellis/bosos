@@ -44,7 +44,7 @@ start(){
     test -e "$LOGDIR" || mkdir -p "$LOGDIR"
     touch "$CONSOLE_LOG"
     chown "$BOSOS_USER:" "$PID_FILE" "$FORKED_PID" "$LOGDIR" "$CONSOLE_LOG" >/dev/null 2>&1
-    daemon --user  $BOSOS_USER "$APP >'$CONSOLE_LOG' 2>&1 </dev/null & echo \$! > '$FORKED_PID'" >/dev/null 2>&1 </dev/null
+    daemon --user  $BOSOS_USER "$APP >'$CONSOLE_LOG' 2>'$CONSOLE_LOG' </dev/null & echo \$! > '$FORKED_PID'" >/dev/null 2>&1 </dev/null
     CONT=0
     while [ $CONT -lt 50 ] ; do
         if check_process; then
